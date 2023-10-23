@@ -4,20 +4,35 @@ import {
   createEffect,
   createResource,
   createSignal,
+  onMount,
 } from "solid-js";
 import { supabase } from "../../lib/supabaseClient";
 import type { AuthSession } from "@supabase/supabase-js";
 import PostImage from "./PostImage";
-import { ui } from '../../i18n/ui'
-import type { uiObject } from '../../i18n/uiType';
+import { ui } from "../../i18n/ui";
+import type { uiObject } from "../../i18n/uiType";
 import { getLangFromUrl, useTranslations } from "../../i18n/utils";
+
+//tinymce
+import tinymce from "tinymce";
+//@ts-ignore
+import { model } from "../../../node_modules/tinymce/models/dom/model";
+//@ts-ignore
+import { theme } from "../../../node_modules/tinymce/themes/silver/theme";
+//@ts-ignore
+import { icons } from "../../../node_modules/tinymce/icons/default/icons";
+//To add new plugins import the main js file from the node modules and add the min file to public and add a script definition to the init call
+//@ts-ignore
+import lists from "../../../node_modules/tinymce/plugins/lists/plugin";
+//@ts-ignore
+import quickbars from "../../../node_modules/tinymce/plugins/quickbars/plugin";
 
 const lang = getLangFromUrl(new URL(window.location.href));
 const t = useTranslations(lang);
-const values = ui[lang] as uiObject
+const values = ui[lang] as uiObject;
 
 //get the categories from the language files so they translate with changes in the language picker
-const productCategoryData = values.productCategoryInfo
+const productCategoryData = values.productCategoryInfo;
 
 async function postFormData(formData: FormData) {
   const response = await fetch("/api/providerCreatePost", {
@@ -26,7 +41,7 @@ async function postFormData(formData: FormData) {
   });
   const data = await response.json();
   if (data.redirect) {
-    alert(data.message); //TODO: Not sure how to internationalize these 
+    alert(data.message); //TODO: Not sure how to internationalize these
     window.location.href = `/${lang}` + data.redirect;
   }
   return data;
@@ -37,6 +52,83 @@ export const CreateNewPost: Component = () => {
   const [formData, setFormData] = createSignal<FormData>();
   const [response] = createResource(formData, postFormData);
   const [imageUrl, setImageUrl] = createSignal<Array<string>>([]);
+  const [mode, setMode] = createSignal<"dark" | "light">(
+    //@ts-ignore
+    localStorage.getItem("theme")
+  );
+
+  console.log("Start Mode: " + mode());
+
+  // onMount(() => {
+  //   window.addEventListener("storage", (event) => {
+  //     console.log(event.key)
+  //   })
+  // })
+
+  // createEffect(() => {
+  //   console.log(mode());
+  // })
+
+  createEffect(() => {
+    window.addEventListener("storage", (event) => {
+      if (event.key === "theme") {
+        //@ts-ignore
+        setMode(event.newValue);
+      }
+      window.location.reload();
+      console.log(event.key);
+      console.log("Mode: " + mode());
+    });
+  });
+
+  createEffect(() => {
+    const script = document.createElement("script");
+    script.src = "/tinymce/tinymce.min.js";
+    script.async = true;
+    script.onload = () => {
+      const listPlugin = document.createElement("script");
+      listPlugin.src = "/tinymce/plugins/lists/plugin.min.js";
+      listPlugin.async = true;
+      listPlugin.onload = () => {
+        const quickBarsPlugin = document.createElement("script");
+        quickBarsPlugin.src = "/tinymce/plugins/quickbars/plugin.min.js";
+        quickBarsPlugin.async = true;
+        quickBarsPlugin.onload = () => {
+          console.log("tinymce loaded");
+          tinymce.init({
+            selector: "#Content",
+            max_width: 384,
+            skin_url:
+              mode() === "dark"
+                ? "/tinymce/skins/ui/oxide-dark"
+                : "/tinymce/skins/ui/oxide",
+            content_css:
+              mode() === "dark"
+                ? "/tinymce/skins/content/dark/content.min.css"
+                : "/tinymce/skins/content/default/content.min.css",
+            promotion: false,
+            plugins: "lists, quickbars",
+            quickbars_image_toolbar: false,
+            quickbars_insert_toolbar: false,
+            toolbar: [
+              "undo redo | bold italic |alignleft aligncenter alignright",
+              "styles bullist numlist outdent indent",
+            ],
+            toolbar_mode: "wrap",
+            statusbar: false,
+            setup: function (editor) {
+              editor.on("change", function () {
+                tinymce.triggerSave();
+              });
+            },
+          });
+        };
+        document.body.appendChild(quickBarsPlugin);
+      };
+      document.body.appendChild(listPlugin);
+    };
+    document.body.appendChild(script);
+  });
 
   createEffect(async () => {
     const { data, error } = await supabase.auth.getSession();
@@ -94,7 +186,7 @@ export const CreateNewPost: Component = () => {
             let length = municipalitySelect?.length;
 
             for (let i = length - 1; i > -1; i--) {
-              if (municipalitySelect.options[i].value !== "-1") {
+              if (municipalitySelect.options[i].value !== "") {
                 municipalitySelect.remove(i);
               }
             }
@@ -135,7 +227,7 @@ export const CreateNewPost: Component = () => {
               let length = municipalitySelect?.length;
 
               for (let i = length - 1; i > -1; i--) {
-                if (municipalitySelect.options[i].value !== "-1") {
+                if (municipalitySelect.options[i].value !== "") {
                   municipalitySelect.remove(i);
                 }
               }
@@ -181,7 +273,7 @@ export const CreateNewPost: Component = () => {
               let length = districtSelect?.length;
 
               for (let i = length - 1; i > -1; i--) {
-                if (districtSelect.options[i].value !== "-1") {
+                if (districtSelect.options[i].value !== "") {
                   districtSelect.remove(i);
                 }
               }
@@ -220,6 +312,7 @@ export const CreateNewPost: Component = () => {
     const formData = new FormData(e.target as HTMLFormElement);
     formData.append("access_token", session()?.access_token!);
     formData.append("refresh_token", session()?.refresh_token!);
+    formData.append("lang", lang);
     if (imageUrl() !== null) {
       formData.append("image_url", imageUrl()!.toString());
     }
@@ -229,26 +322,26 @@ export const CreateNewPost: Component = () => {
   return (
     <div>
       <form onSubmit={submit}>
-        <label for="Title" class="text-text1 dark:text-text1-DM">
+        <label for="Title" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.title")}:
           <input
             type="text"
             id="Title"
             name="Title"
-            class="rounded w-full mb-4 px-1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none text-text1"
+            class="rounded w-full mb-4 px-1 focus:border-highlight1 dark:focus:border-highlight1-DM border focus:border-2 border-inputBorder1 dark:border-inputBorder1-DM focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
             required
           />
         </label>
 
-
-        <label for="ServiceCategory" class="text-text1 dark:text-text1-DM">
+        <label for="ServiceCategory" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.serviceCategory")}:
           <select
             id="ServiceCategory"
             name="ServiceCategory"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
-            required>
-            <option value="-1">-</option>
+            class="ml-2 rounded mb-4 border border-inputBorder1 dark:border-inputBorder1-DM focus:border-highlight1 dark:focus:border-highlight1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
+            required
+          >
+            <option value="">-</option>
             {productCategoryData.categories.map((category) => (
               <option value={category.id}>{category.name}</option>
             ))}
@@ -257,42 +350,45 @@ export const CreateNewPost: Component = () => {
 
         <br />
 
-
-        <label for="Content" class="text-text1 dark:text-text1-DM">
+        <label for="Content" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.postContent")}:
           <textarea
             id="Content"
             name="Content"
-            class="rounded w-full mb-4 px-1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none text-text1"
-            placeholder={t('formLabels.enterPostContent')}
+            class="rounded w-full mb-4 px-1 border border-inputBorder1 dark:border-inputBorder1-DM focus:border-highlight1 dark:focus:border-highlight1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM "
+            placeholder={t("formLabels.enterPostContent")}
             rows="10"
-            required>
-          </textarea>
+            required
+          ></textarea>
         </label>
 
-
-        <div class="mb-6">
-          <label for="country" class="text-text1 dark:text-text1-DM">
+        <div class="mb-6 mt-6">
+          <label for="country" class="text-ptext1 dark:text-ptext1-DM">
             {t("formLabels.country")}:
             <select
               id="country"
               name="country"
-              class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
-              required>
-              <option value="-1">-</option>
+              class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
+              required
+            >
+              <option value="">-</option>
             </select>
           </label>
         </div>
 
         <div class="mb-6">
-          <label for="MajorMunicipality" class="text-text1 dark:text-text1-DM">
+          <label
+            for="MajorMunicipality"
+            class="text-ptext1 dark:text-ptext1-DM"
+          >
             {t("formLabels.majorMunicipality")}:
             <select
               id="MajorMunicipality"
               name="MajorMunicipality"
-              class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
-              required>
-              <option value="-1">-</option>
+              class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
+              required
+            >
+              <option value="">-</option>
             </select>
           </label>
         </div>
@@ -303,9 +399,10 @@ export const CreateNewPost: Component = () => {
             <select
               id="MinorMunicipality"
               name="MinorMunicipality"
-              class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
-              required>
-              <option value="-1">-</option>
+              class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
+              required
+            >
+              <option value="">-</option>
             </select>
           </label>
         </div>
@@ -315,29 +412,67 @@ export const CreateNewPost: Component = () => {
           <select
             id="GoverningDistrict"
             name="GoverningDistrict"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
-            required>
-            <option value="-1">-</option>
+            class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
+            required
+          >
+            <option value="">-</option>
           </select>
         </label>
 
         <div class="mb-4 flex justify-center">
-          <PostImage
-            url={imageUrl()[imageUrl().length -1]}
-            size={150}
-            onUpload={(e: Event, url: string) => {
-              setImageUrl([...imageUrl(), url]);
-            }}
-          />
+          <div class="">
+            <div class="flex flex-row justify-end">
+              <div class="group flex items-center relative mr-2">
+                <svg
+                  class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full mb-2"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 512 512"
+                >
+                  <g>
+                    <path
+                      d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"
+                    />
+                  </g>
+                </svg>
+
+                <span
+                  class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48"
+                >
+                  {t("toolTips.postImages")}
+                </span>
+              </div>
+            </div>
+            <PostImage
+              url={imageUrl()[imageUrl().length - 1]}
+              size={150}
+              onUpload={(e: Event, url: string) => {
+                setImageUrl([...imageUrl(), url]);
+              }}
+            />
+          </div>
         </div>
 
         <br />
         <div class="flex justify-center">
-          <button class="btn-primary">
-            {t('buttons.post')}
-          </button>
+          <button class="btn-primary">{t("buttons.post")}</button>
         </div>
-        <Suspense>{response() && <p>{response().message}</p>}</Suspense>
+        <Suspense>
+          {response() && (
+            <p class="mt-2 font-bold text-center text-alert1 dark:text-alert1-DM">
+              {response().message}
+            </p>
+          )}
+        </Suspense>
       </form>
     </div>
   );

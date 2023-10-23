@@ -1,15 +1,14 @@
 ---
 import Layout from "../../layouts/PageLayout.astro";
 import { getLangFromUrl, useTranslations } from "../../i18n/utils";
-import { EditProfileButton } from "../../components/users/EditProfileButton";
+import { ClientProfileView } from "../../components/users/ClientProfileView";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<Layout pageTitle={t("pageTitles.viewClientAccount")}>
+<Layout pageTitle={t("pageTitles.viewClientAccount")} pageDescription={t("pageDescriptions.viewClientAccount")}>
   <div>
-    <h1>{t("pageTitles.editClientAccount")}</h1>
-    <EditProfileButton client:only="solid-js" />
+    <ClientProfileView client:only="solid-js" />
   </div>
 </Layout>
