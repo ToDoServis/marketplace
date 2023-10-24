@@ -4,11 +4,16 @@ import { z, defineCollection } from 'astro:content';
 const policiesCollection = defineCollection({
     type: 'content',
     schema: z.object({
-        title: z.string(),
-        tags: z.array(z.string()),
     }),
 });
 
+const aboutCollection = defineCollection({
+    type: 'content',
+    schema: z.object({
+    }),
+})
+
 export const collections = {
     'policies': policiesCollection,
+    'about': aboutCollection
 }

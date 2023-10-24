@@ -32,10 +32,12 @@ export const ClientRegistration: Component = () => {
   const [formData, setFormData] = createSignal<FormData>();
   const [response] = createResource(formData, postFormData);
   const [imageUrl, setImageUrl] = createSignal<string | null>(null);
+  const [phone, setPhone] = createSignal<string>("");
+
+  const regularExpressionPhone = new RegExp("^[0-9]{8}$");
 
   createEffect(async () => {
     const { data, error } = await supabase.auth.getSession();
-    console.log(data);
     setSession(data.session);
 
     if (session()) {
@@ -71,7 +73,7 @@ export const ClientRegistration: Component = () => {
             let length = municipalitySelect?.length;
 
             for (let i = length - 1; i > -1; i--) {
-              if (municipalitySelect.options[i].value !== "-1") {
+              if (municipalitySelect.options[i].value !== "") {
                 municipalitySelect.remove(i);
               }
             }
@@ -112,7 +114,7 @@ export const ClientRegistration: Component = () => {
               let length = municipalitySelect?.length;
 
               for (let i = length - 1; i > -1; i--) {
-                if (municipalitySelect.options[i].value !== "-1") {
+                if (municipalitySelect.options[i].value !== "") {
                   municipalitySelect.remove(i);
                 }
               }
@@ -158,7 +160,7 @@ export const ClientRegistration: Component = () => {
               let length = districtSelect?.length;
 
               for (let i = length - 1; i > -1; i--) {
-                if (districtSelect.options[i].value !== "-1") {
+                if (districtSelect.options[i].value !== "") {
                   districtSelect.remove(i);
                 }
               }
@@ -194,131 +196,277 @@ export const ClientRegistration: Component = () => {
 
   function submit(e: SubmitEvent) {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    formData.append("access_token", session()?.access_token!);
-    formData.append("refresh_token", session()?.refresh_token!);
-    if (imageUrl() !== null) {
-      formData.append("image_url", imageUrl()!);
-    }
-    setFormData(formData);
-    console.log(formData);
+    // this might not be the best way to do this but it works and we can also have more control over the form input data
+    if(regularExpressionPhone.test(phone())){
+
+      const formData = new FormData(e.target as HTMLFormElement);
+      formData.append("access_token", session()?.access_token!);
+      formData.append("refresh_token", session()?.refresh_token!);
+      formData.append("lang", lang)
+      if (imageUrl() !== null) {
+        formData.append("image_url", imageUrl()!);
+      }
+      setFormData(formData);
+    }else if(!regularExpressionPhone.test(phone())) {  {
+      alert(t("messages.phoneLackRequirements"));
+}
   }
+}
 
   return (
     <div class="">
       <form onSubmit={submit} class="">
-        <label for="FirstName" class="text-text1 dark:text-text1-DM">
-          {t("formLabels.firstName")}:
+
+        <div class="">
+          <div class="flex flex-row justify-between">
+            <label for="FirstName" class="text-ptext1 dark:text-ptext1-DM">
+              {t("formLabels.firstName")}:
+            </label>
+            <div class="group flex items-center relative mr-2">
+              <svg class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512">
+                <g>
+                  <path d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"/>
+                </g>
+              </svg>
+
+              <span
+                class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48">
+                {t("toolTips.firstName")}
+              </span>
+
+            </div>
+          </div>
           <input
             type="text"
             id="FirstName"
             name="FirstName"
-            class="rounded w-full mb-4 px-1 text-text1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="rounded w-full mb-4 px-1 focus:border-highlight1 dark:focus:border-highlight1-DM border focus:border-2 border-inputBorder1 dark:border-inputBorder1-DM focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
             required
           />
-        </label>
+        </div>
 
-        <label for="LastName" class="text-text1 dark:text-text1-DM">
-          {t("formLabels.lastName")}:
+        <div class="">
+          <div class="flex flex-row justify-between">
+            <label for="LastName" class="text-ptext1 dark:text-ptext1-DM">
+              {t("formLabels.lastName")}:
+            </label>
+            <div class="group flex items-center relative mr-2">
+              <svg class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512">
+                <g>
+                  <path d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"/>
+                </g>
+              </svg>
+
+              <span
+                class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48">
+                {t("toolTips.lastName")}
+              </span>
+
+            </div>
+          </div>
           <input
             type="text"
             id="LastName"
             name="LastName"
-            class="rounded w-full mb-4 px-1 text-text1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="rounded w-full mb-4 px-1 focus:border-highlight1 dark:focus:border-highlight1-DM border focus:border-2 border-inputBorder1 dark:border-inputBorder1-DM focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
             required
           />
-        </label>
+        </div>
 
-        <label for="DisplayName" class="text-text1 dark:text-text1-DM">
-          {t("formLabels.displayName")}
+        <div class="">
+          <div class="flex flex-row justify-between">
+            <label for="DisplayName" class="text-ptext1 dark:text-ptext1-DM">
+              {t("formLabels.displayName")}
+            </label>
+            <div class="group flex items-center relative mr-2">
+              <svg class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512">
+                <g>
+                  <path d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"/>
+                </g>
+              </svg>
+
+              <span
+                class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48">
+                {t("toolTips.displayName")}
+              </span>
+
+            </div>
+          </div>
           <input
             type="text"
             id="DisplayName"
-            class="rounded w-full mb-4 px-1 text-text1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="rounded w-full mb-4 px-1 focus:border-highlight1 dark:focus:border-highlight1-DM border focus:border-2 border-inputBorder1 dark:border-inputBorder1-DM focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
             name="DisplayName"
           />
-        </label>
+        </div>
 
-        <label for="Phone" class="text-text1 dark:text-text1-DM">
-          {t("formLabels.phone")}:
+        <div class="">
+          <div class="flex flex-row justify-between">
+            <label for="Phone" class="text-ptext1 dark:text-ptext1-DM">
+              {t("formLabels.phone")}:
+            </label>
+            <div class="group flex items-center relative mr-2">
+              <svg class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512">
+                <g>
+                  <path d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"/>
+                </g>
+              </svg>
+
+              <span
+                class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48">
+                {t("toolTips.clientPhone")}
+              </span>
+
+            </div>
+          </div>
           <input
             type="text"
             id="Phone"
-            class="rounded w-full mb-4 text-text1 focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="rounded w-full mb-4 px-1 focus:border-highlight1 dark:focus:border-highlight1-DM border focus:border-2 border-inputBorder1 dark:border-inputBorder1-DM focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1 dark:text-ptext2-DM"
             name="Phone"
             required
+            onChange={(e) => setPhone(e.currentTarget.value)}
           />
-        </label>
+        </div>
+ 
 
-        <label for="country" class="text-text1 dark:text-text1-DM">
+        <label for="country" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.country")}:
           <select
             id="country"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
             name="country"
             required
           >
-            <option value="-1">-</option>
+            <option value="">-</option>
           </select>
         </label>
 
         <br />
 
-        <label for="MajorMunicipality" class="text-text1 dark:text-text1-DM">
+        <label for="MajorMunicipality" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.majorMunicipality")}:
           <select
             id="MajorMunicipality"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
             name="MajorMunicipality"
             required
           >
-            <option value="-1">-</option>
+            <option value="">-</option>
           </select>
         </label>
 
         <br />
 
-        <label for="MinorMunicipality" class="text-text1 dark:text-text1-DM">
+        <label for="MinorMunicipality" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.minorMunicipality")}:
           <select
             id="MinorMunicipality"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
             name="MinorMunicipality"
             required
           >
-            <option value="-1">-</option>
+            <option value="">-</option>
           </select>
         </label>
 
         <br />
 
-        <label for="GoverningDistrict" class="text-text1 dark:text-text1-DM">
+        <label for="GoverningDistrict" class="text-ptext1 dark:text-ptext1-DM">
           {t("formLabels.governingDistrict")}:
           <select
             id="GoverningDistrict"
-            class="ml-2 rounded mb-4 dark:text-black focus:border-btn1 dark:focus:border-btn1-DM border-2 focus:outline-none"
+            class="ml-2 rounded mb-4 focus:border-highlight1 dark:focus:border-highlight1-DM border border-inputBorder1 dark:border-inputBorder1-DM focus:border-2 focus:outline-none bg-background1 dark:bg-background2-DM text-ptext1  dark:text-ptext2-DM"
             name="GoverningDistrict"
             required
           >
-            <option value="-1">-</option>
+            <option value="">-</option>
           </select>
         </label>
 
         <div class="mb-4 flex justify-center">
-          <UserImage
-            url={imageUrl()}
-            size={150}
-            onUpload={(e: Event, url: string) => {
-              setImageUrl(url);
-            }}
-          />
+          <div class="">
+            <div class="flex flex-row justify-end">
+              <div class="group flex items-center relative mr-2">
+                <svg class="peer w-4 h-4 border-2 bg-icon1 dark:bg-background1-DM fill-iconbg1 dark:fill-iconbg1-DM  border-border1 dark:border-none rounded-full" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 512 512">
+                  <g>
+                    <path d="M255.992,0.008C114.626,0.008,0,114.626,0,256s114.626,255.992,255.992,255.992
+                      C397.391,511.992,512,397.375,512,256S397.391,0.008,255.992,0.008z M300.942,373.528c-10.355,11.492-16.29,18.322-27.467,29.007
+                      c-16.918,16.177-36.128,20.484-51.063,4.516c-21.467-22.959,1.048-92.804,1.597-95.449c4.032-18.564,12.08-55.667,12.08-55.667
+                      s-17.387,10.644-27.709,14.419c-7.613,2.782-16.225-0.871-18.354-8.234c-1.984-6.822-0.404-11.161,3.774-15.822
+                      c10.354-11.484,16.289-18.314,27.467-28.999c16.934-16.185,36.128-20.483,51.063-4.524c21.467,22.959,5.628,60.732,0.064,87.497
+                      c-0.548,2.653-13.742,63.627-13.742,63.627s17.387-10.645,27.709-14.427c7.628-2.774,16.241,0.887,18.37,8.242
+                      C306.716,364.537,305.12,368.875,300.942,373.528z M273.169,176.123c-23.886,2.096-44.934-15.564-47.031-39.467
+                      c-2.08-23.878,15.58-44.934,39.467-47.014c23.87-2.097,44.934,15.58,47.015,39.458
+                      C314.716,152.979,297.039,174.043,273.169,176.123z"/>
+                  </g>
+                </svg>
+
+                <span
+                  class="peer-hover:visible transition-opacity bg-background2 dark:bg-background2-DM text-sm text-ptext2 dark:text-ptext2-DM rounded-md absolute 
+                md:translate-x-1/4 -translate-x-full -translate-y-2/3 md:translate-y-0 invisible m-4 mx-auto p-2 w-48">
+                  {t("toolTips.profileImage")}
+                </span>
+
+              </div>
+            </div>
+            <UserImage
+              url={imageUrl()}
+              size={150}
+              onUpload={(e: Event, url: string) => {
+                setImageUrl(url);
+              }}
+            />
+          </div>
+
         </div>
 
         <div class="flex justify-center">
           <button class="btn-primary">{t("buttons.register")}</button>
         </div>
 
-        <Suspense>{response() && <p>{response().message}</p>}</Suspense>
+        <Suspense>{response() && <p class="mt-2 font-bold text-center text-alert1 dark:text-alert1-DM">{response().message}</p>}</Suspense>
       </form>
     </div>
   );
