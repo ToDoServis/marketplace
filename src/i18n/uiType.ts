@@ -26,6 +26,7 @@ export interface uiObject {
     impact: string,
     fullPost: string,
     offline: string,
+    faq: string,
   },
 
   pageDescriptions: {
@@ -49,6 +50,7 @@ export interface uiObject {
     about: string,
     impact: string,
     fullPost: string,
+    faq: string,
   },
 
   buttons: {
@@ -71,6 +73,8 @@ export interface uiObject {
     contact: string,
     phone: string,
     saveProfile: string,
+    filters: string,
+    faq: string,
   },
 
   messages: {
@@ -108,6 +112,7 @@ export interface uiObject {
     mustSignIn: string,
     profileEdits: string,
     noClient: string,
+    noPostsSearch: string,
   },
 
   formLabels: {
@@ -136,6 +141,9 @@ export interface uiObject {
     yourPosts: string,
     optional: string,
     required: string,
+    languages: string,
+    chooseLanguage: string,
+    languagesSpoken: string,
   },
 
   postLabels: {
@@ -171,6 +179,7 @@ export interface uiObject {
     postImages: string,
     firstNameEdit: string,
     lastNameEdit: string,
+    languages: string,
   },
 
   apiErrors: {
@@ -197,6 +206,21 @@ export interface uiObject {
     clientCreateProfileError: string,
     clientEditProfileError: string,
     createUserError: string,
+    emailNotConfirmed: string,
+  },
+
+  socialModal: {
+    shareService: string,
+    twitterX: string,
+    facebook: string,
+    WhatsApp: string,
+    email: string,
+    copyLink: string,
+    embedLink: string,
+    textLink: string,
+    disclaimer: string,
+    shareButton: string,
+    closeShareMenu: string,
   },
 
   ariaLabels: {
@@ -206,6 +230,8 @@ export interface uiObject {
     checkboxMajorMunicipality: string,
     checkboxMinorMunicipality: string,
     checkboxGoverningDistrict: string,
+    darkMessage: string,
+    closeDialog: string,
   },
 
   headerData: {
@@ -286,19 +312,22 @@ export interface uiObject {
 
 productCategoryInfo:{
     categories: [
-      { name: string, description: string, ariaLabel: string, id: "1" },
+      // { name: string, description: string, ariaLabel: string, id: "1" },
       { name: string, description: string, ariaLabel: string, id: "3" },
       { name: string, description: string, ariaLabel: string, id: "2" },
       { name: string, description: string, ariaLabel: string, id: "5" },
       { name: string, description: string, ariaLabel: string, id: "4" },
       { name: string, description: string, ariaLabel: string, id: "6" },
       { name: string, description: string, ariaLabel: string, id: "7" },
-      { name: string, description: string, ariaLabel: string, id: "8" },
+      // { name: string, description: string, ariaLabel: string, id: "8" },
       { name: string, description: string, ariaLabel: string, id: "9" },
       { name: string, description: string, ariaLabel: string, id: "10" },
       { name: string, description: string, ariaLabel: string, id: "11" },
       { name: string, description: string, ariaLabel: string, id: "12" },
       { name: string, description: string, ariaLabel: string, id: "13" },
+      { name: string, description: string, ariaLabel: string, id: "14" },
+      { name: string, description: string, ariaLabel: string, id: "15" },
+      { name: string, description: string, ariaLabel: string, id: "16" },
       // Add more products as needed
     ]
   },
